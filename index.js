@@ -23,11 +23,14 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
+    //serviceCollection as doctorsPortalCollection
     const doctorsPortalCollection = client
       .db("doctors_portal")
       .collection("service");
     const bookingCollection = client.db("doctors_portal").collection("booking");
+    const userCollection = client.db("doctors_portal").collection("users");
 
+    // all services
     app.get("/service", async (req, res) => {
       const query = {};
       const cursor = doctorsPortalCollection.find(query);
@@ -35,6 +38,21 @@ async function run() {
       res.send(result);
     });
 
+    //user
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
+    });
+
+    // mongodb aggregate will be use
+    // multiple collection for user appoinment
     app.get("/available", async (req, res) => {
       const date = req.query.date;
 
@@ -60,6 +78,7 @@ async function run() {
       res.send(services);
     });
 
+    //user booking
     app.get("/booking", async (req, res) => {
       const patient = req.query.patient;
       const query = { patient: patient };
@@ -67,6 +86,7 @@ async function run() {
       res.send(bookings);
     });
 
+    //user submiting their booking - all booking
     app.post("/booking", async (req, res) => {
       const booking = req.body;
       const query = {
