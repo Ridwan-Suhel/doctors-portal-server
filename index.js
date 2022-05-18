@@ -13,7 +13,7 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const res = require("express/lib/response");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.p2fe2.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
@@ -152,6 +152,14 @@ async function run() {
       } else {
         return res.status(403).send({ message: "Forbidden Access" });
       }
+    });
+
+    // get booking by id
+    app.get("/booking/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const booking = await bookingCollection.findOne(query);
+      res.send(booking);
     });
 
     //user submiting their booking - all booking
